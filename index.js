@@ -1,49 +1,79 @@
-const addButton = document.getElementById('add-product-button'); /// html ko addButton element select garcha
-const deleteAllButton = document.getElementById('delete-all-products'); /// delete button element
-const productList = document.getElementById('product-list'); /// ul list element
-const productInput = document.getElementById('product-name'); /// form ko input element
+/// selecting frontEnd elements
+const addButton = document.getElementById('add-product-button');
+const deleteAllButton = document.getElementById('delete-all-products');
+const productList = document.getElementById('product-list');
+const productNameInput = document.getElementById('product-name');
+const productPriceInput = document.getElementById('product-price');
+const productDescriptionInput = document.getElementById('product-description');
+const productQuantityInput = document.getElementById('product-quantity');
+
 const products = [];
 
 /// add product
 function addProduct() {
-  const product = productInput.value; /// product ko form bata ligeko input value
-  if (productInput.value !== '') {
-    /// empty huda add huna nadine but alert dekhaune
-    products.push(product); /// tyo value products array ma push/add gareko
+  const productName = productNameInput.value;
+  const productPrice = parseInt(productPriceInput.value); // since all form input values are always in string in HTML, parsing these into integer value
+  const productDescription = productDescriptionInput.value;
+  const productQuantity = parseInt(productQuantityInput.value);
+
+  // creates objects only if fields are not empty, also price and quantity need to be numbers else shows alert
+  if (
+    productName !== '' &&
+    !isNaN(productPrice) &&
+    !isNaN(productQuantity) &&
+    productDescription !== ''
+  ) {
+    // creating new object for each product
+    const product = {
+      name: productName,
+      price: productPrice,
+      description: productDescription,
+      quantity: productQuantity,
+    };
+
+    products.push(product);
     updateProductList();
-    productInput.value = ''; /// add vaye pachi form ko input field empty gareko
+    clearFormInputs();
   } else {
-    alert('Product name cannot be empty'); /// empty vaye yo alert show garcha
+    alert('Fields cannot be empty and price/quantity must be numbers.');
   }
 }
 
-/// load products
-function loadProducts() {
-  updateProductList();
+// clear form inputs
+function clearFormInputs() {
+  productNameInput.value = '';
+  productPriceInput.value = '';
+  productDescriptionInput.value = '';
+  productQuantityInput.value = '';
 }
 
+// update product list
 function updateProductList() {
   productList.innerHTML = '';
 
   for (let i = 0; i < products.length; i++) {
-    /// hamlai jati ota prodcut cha tesko each ko ul element banunu parne vayera loop rakheko
     const product = products[i];
 
     const li = document.createElement('li');
 
     const span = document.createElement('span');
-    span.textContent = product;
+    span.innerHTML = `
+      Product Name: ${product.name} <br>
+      Price: Rs.${product.price} <br>
+      Quantity: ${product.quantity} <br>
+      Total: Rs.${product.price * product.quantity}
+    `;
+
+    const editButton = document.createElement('button');
+    editButton.textContent = 'Update';
+    editButton.addEventListener('click', function () {
+      editProduct(i);
+    });
 
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Delete';
     deleteButton.addEventListener('click', function () {
-      deleteProduct(product);
-    });
-
-    const editButton = document.createElement('button');
-    editButton.textContent = 'Edit';
-    editButton.addEventListener('click', function () {
-      editProduct(i);
+      deleteProduct(i);
     });
 
     span.appendChild(deleteButton);
@@ -53,29 +83,33 @@ function updateProductList() {
   }
 }
 
-/// delete all products
-function deleteAllProducts() {
-  products.splice(0);
+// edit product
+function editProduct(index) {
+  const currentProduct = products[index];
+
+  // Update the input fields with the current product information
+  productNameInput.value = currentProduct.name;
+  productPriceInput.value = currentProduct.price;
+  productDescriptionInput.value = currentProduct.description;
+  productQuantityInput.value = currentProduct.quantity;
+
+  // deletes the currently editing product from list
+  products.splice(index, 1);
   updateProductList();
 }
 
-function editProduct(index) {
-  const currentProductName = products[index];
-  const newProductName = prompt(
-    'Enter the new product name:',
-    currentProductName
-  );
-  if (newProductName !== null) {
-    products[index] = newProductName;
-    updateProductList();
-  }
-}
-
+// deletes the selected product
 function deleteProduct(index) {
   products.splice(index, 1);
   updateProductList();
 }
 
-window.onload = loadProducts;
+// deletes all products
+function deleteAllProducts() {
+  products.length = 0;
+  updateProductList();
+}
+
+window.onload = updateProductList;
 deleteAllButton.addEventListener('click', deleteAllProducts);
 addButton.addEventListener('click', addProduct);
